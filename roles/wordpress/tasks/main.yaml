@@ -1,0 +1,48 @@
+---
+- name: download wordpress 
+  get_url:
+    url: https://wordpress.org/latest.tar.gz
+    dest: /home/ansible/wordpress.tar.gz
+    validate_certs: no
+
+- name: extract wordpress
+  unarchive: src=/home/ansible/wordpress.tar.gz dest=/var/www/ copy=no
+  remote_src: yes 
+
+
+- name: create virtual host
+  template: src=virtualhost.conf.j2 dest=/etc/httpd/conf.d/wordpress.conf
+
+- name: restart httpd
+  service:
+    name: httpd
+    state: restarted
+
+
+#- name: update default http site
+#  lineinfile:
+#    dest=/etc/httpd/conf/httpd.conf
+#    regexp="(.)+DocumentRoot /var/www/html"
+#    line="DocumentRoot /var/www/wordpress.ab/"
+
+- name: restart httpd
+  service: 
+    name: httpd
+    state: restarted
+
+- name: copy sample config file
+  command: mv /var/www/wordpress/wp-config-sample.php /var/www/wordpress/wp-config.php creates=/var/www/wordpress/wp-config.php
+  
+- name: update wordpress config file
+  lineinfile:
+    dest=/var/www/wordpress//wp-config.php
+    regexp="{{ item.regexp }}"
+    line="{{ item.line }}"   
+  with_items:
+            - {'regexp': "define\\('DB_NAME', '(.)+'\\);", 'line': "define('DB_NAME', '{{wp_mysql_db}}');"}
+            - {'regexp': "define\\('DB_USER', '(.)+'\\);", 'line': "define('DB_USER', '{{wp_mysql_user}}');"} 
+            - {'regexp': "define\\('DB_PASSWORD', '(.)+'\\);", 'line': "define('DB_PASSWORD', '{{wp_mysql_password}}');"}
+- name: restart httpd
+  service:
+    name: httpd
+    state: restarted

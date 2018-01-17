@@ -1,0 +1,23 @@
+---
+- name: install requirements
+  package:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+             - epel-release
+             - httpd
+             - mariadb-server
+             - php-mysql
+             - php
+             - php-mcrypt
+             - MySQL-python
+
+- name: enable and start httpd and mysql
+  service:
+    name: "{{ item }}"
+    enabled: yes
+    state: started
+  with_items: 
+             - httpd
+             - mariadb
+

@@ -1,0 +1,8 @@
+---
+- name: install php extensions
+  package: 
+    name: "{{ item }}"
+    state: latest
+  with_items:
+             - php-gd
+             - php-pecl-ssh2
